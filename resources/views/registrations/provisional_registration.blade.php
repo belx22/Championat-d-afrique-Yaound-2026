@@ -164,11 +164,16 @@
            
             <!-- ACTIONS -->
             <div class="card-footer text-right">
-                @if($registration->status !== 'valide')
-                    <button class="btn btn-primary">
-                        Enregistrer
-                    </button>
-                @endif
+                  @if($registration->status !== 'valide')
+                <button  class="btn btn-primary">
+                    Submit 
+                </button>
+            @else
+                <div class="alert alert-info">
+                    Cette étape a été validée. Les données sont en lecture seule.
+                </div>
+            @endif
+            
             </div>
         </div>
     </form>
@@ -211,63 +216,81 @@
 
 
 
-
 @if($registration->signed_document)
-<div class="modal fade" id="previewSignedDocumentModal" tabindex="-1" role="dialog" data-backdrop="static" data-keyboard="false">
+
+<div class="modal fade"
+     id="previewSignedDocumentModal"
+     tabindex="-1"
+     role="dialog"
+     data-backdrop="static"
+     data-keyboard="false">
+
     <div class="modal-dialog modal-xl modal-dialog-centered" role="document">
         <div class="modal-content">
 
+            {{-- HEADER --}}
             <div class="modal-header bg-primary text-white">
                 <h5 class="modal-title">
                     <i class="fas fa-file-signature"></i>
                     Document signé – Provisional Registration
                 </h5>
-                <button type="button" class="close text-white" data-dismiss="modal">
+                <button type="button"
+                        class="close text-white"
+                        data-dismiss="modal">
                     <span>&times;</span>
                 </button>
             </div>
 
-            <div class="modal-body" style="height:90vh">
+            {{-- BODY --}}
+            <div class="modal-body p-0" style="height:90vh">
 
                 @php
-                    $file = asset('storage/'.$registration->signed_document);
-                    $ext = pathinfo($registration->signed_document, PATHINFO_EXTENSION);
+                    $previewUrl = route('secure.preview', [
+                        'provisional',
+                        $registration->id,
+                        'signed_document'
+                    ]);
+
+                    $ext = strtolower(pathinfo(
+                        $registration->signed_document,
+                        PATHINFO_EXTENSION
+                    ));
                 @endphp
 
                 {{-- PDF --}}
                 @if($ext === 'pdf')
-                    <iframe src="{{ $file }}"
-                            width="100%"
-                            height="100%"
-                            class="border rounded">
+                    <iframe src="{{ $previewUrl }}"
+                            style="width:100%;height:100%;border:none;"
+                            loading="lazy">
                     </iframe>
 
-                {{-- Image --}}
-                @elseif(in_array($ext, ['jpg','jpeg','png']))
-                    <div class="text-center">
-                        <img src="{{ $file }}"
+                {{-- IMAGE --}}
+                @elseif(in_array($ext, ['jpg','jpeg','png','webp']))
+                    <div class="d-flex justify-content-center align-items-center h-100 bg-light">
+                        <img src="{{ $previewUrl }}"
                              class="img-fluid rounded shadow"
-                             alt="Document signé"
-                             style="max-height: 100%;object-fit:contain;">
+                             style="max-height:100%;max-width:100%;object-fit:contain;"
+                             alt="Document signé">
                     </div>
 
-                {{-- Autre format --}}
+                {{-- AUTRE --}}
                 @else
-                    <div class="alert alert-warning">
-                        Format non supporté pour l’aperçu.
-                        <a href="{{ $file }}" download>Télécharger le fichier</a>
+                    <div class="alert alert-warning m-4 text-center">
+                        Aperçu non disponible pour ce format.
                     </div>
                 @endif
 
             </div>
 
-            <div class="modal-footer">
-                <a href="{{ $file }}"
-                   download
-                   class="btn btn-secondary">
-                    <i class="fas fa-download"></i> Télécharger
-                </a>
-                <button class="btn btn-outline-dark" data-dismiss="modal">
+            {{-- FOOTER --}}
+            <div class="modal-footer justify-content-between">
+                <span class="text-muted small">
+                    <i class="fas fa-lock"></i>
+                    Consultation sécurisée – téléchargement désactivé
+                </span>
+
+                <button class="btn btn-outline-dark"
+                        data-dismiss="modal">
                     Fermer
                 </button>
             </div>
@@ -275,6 +298,7 @@
         </div>
     </div>
 </div>
+
 @endif
 
 

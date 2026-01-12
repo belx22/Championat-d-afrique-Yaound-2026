@@ -16,6 +16,7 @@ use App\Http\Controllers\{
     NominativeRegistrationController,
     AdminRegistrationController,
     AccreditationController,
+    SecurePreviewController,
 };
 
 use App\Http\Controllers\HotelController;
@@ -31,6 +32,9 @@ use App\Http\Controllers\LoginController;
 */
 
 Route::get('/login', [LoginController::class, 'showLoginForm'])
+    ->name('login');
+
+Route::get('/', [LoginController::class, 'showLoginForm'])
     ->name('login');
 
 Route::post('/login', [LoginController::class, 'login'])
@@ -52,8 +56,12 @@ Route::middleware('auth:championat')->get('/home', function () {
 })->name('home');
 
 
-
-
+Route::get(
+    '/secure-preview/{context}/{id}/{field}',
+    [SecurePreviewController::class, 'preview']
+)
+->name('secure.preview')
+->middleware('auth:championat');
 
 
 /////////////////////////////////////////////////////
@@ -342,6 +350,17 @@ Route::middleware(['auth:championat','role:super-admin,admin-local'])
     ->name('admin.accreditations.')
     ->group(function () {
 
+        Route::get(
+                '/{delegation}/badges/pdf',
+                [AccreditationController::class, 'badgesPdf']
+            )->name('badges.pdf');
+
+        Route::get(
+                '/export/excel',
+                [AccreditationController::class, 'exportExcel']
+            )->name('export.excel');
+
+        Route::get('/delegations/{delegation}', [AccreditationController::class,'showByDelegation'])->name('showByDelegation');
         Route::get('/', [AccreditationController::class,'index'])->name('index');
         Route::get('/delegation/{delegation}', [AccreditationController::class,'show'])->name('show');
 

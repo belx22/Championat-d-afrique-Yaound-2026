@@ -19,3 +19,12 @@
         {{ $accreditation->badge_number }}
     </p>
 </div>
+
+
+
+<a href="{{ route('admin.accreditations.badges.pdf',$delegation) }}"
+   class="btn btn-danger mb-3"
+   target="_blank">
+   <i class="fas fa-file-pdf"></i> Export PDF (A4)
+</a>
+
