@@ -42,6 +42,7 @@
 </div>
 
 <!-- DÉLÉGATIONS (SUPER ADMIN + ADMIN LOCAL) -->
+<!-- ajouter une view pour que les admin de fed voient quel sont les delegations deja present -->
 @if(in_array($user->role, ['super-admin', 'admin-local']))
 <li class="nav-item">
     <a class="nav-link" href="/delegations">
@@ -86,10 +87,15 @@
     </a>
     <div id="collapseAccommodation" class="collapse">
         <div class="bg-white py-2 collapse-inner rounded">
-            @if($user->role === 'admin-local')
-                <a class="collapse-item" href="/accommodation">Hôtels & Chambres</a>
+            @if(in_array($user->role, ['super-admin','admin-local']))
+                <a class="collapse-item" href="/accommodation">Accommodation</a>
+                <a class="collapse-item" href="/hotels">Gestion Hôtels</a>
+                <a class="collapse-item" href="/reservations">Gestion Réservations</a>
             @endif
-            <a class="collapse-item" href="/reservations">Réservations</a>
+            @if($user->role === 'admin-federation')
+                <a class="collapse-item" href="/federation/hotels">Hotels</a>
+                <a class="collapse-item" href="/reservations">Reservations</a>
+            @endif
         </div>
     </div>
 </li>
@@ -115,25 +121,27 @@
 </li>
 @endif
 
-<hr class="sidebar-divider">
+
 
 <!-- ================= ADMINISTRATION ================= -->
+ @if(in_array($user->role, ['super-admin', 'admin-local']))
+ <hr class="sidebar-divider">
 <div class="sidebar-heading">
     Administration
 </div>
 
 <!-- UTILISATEURS & RÔLES (SUPER ADMIN + ADMIN LOCAL) -->
-@if(in_array($user->role, ['super-admin', 'admin-local']))
+
 <li class="nav-item">
     <a class="nav-link" href="/role_inscription">
         <i class="fas fa-fw fa-users-cog"></i>
         <span>Utilisateurs & Rôles</span>
     </a>
 </li>
-@endif
+
 
 <!-- STATISTIQUES (SUPER ADMIN + ADMIN LOCAL) -->
-@if(in_array($user->role, ['super-admin', 'admin-local']))
+
 <li class="nav-item">
     <a class="nav-link" href="/statistics">
         <i class="fas fa-fw fa-chart-line"></i>
