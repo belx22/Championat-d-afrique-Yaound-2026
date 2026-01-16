@@ -289,10 +289,8 @@
                             <td>{{ $m->category ?? '-' }}</td>
                         
                             <td class="text-center">
-                                 @if($m->passport_scan)
-                                    <button class="btn btn-sm btn-info preview-btn"
-                                            data-toggle="modal"
-                                            data-target="#previewModal"
+                                 
+                                   <button class="btn btn-sm btn-info preview-btn"
                                             data-type="pdf"
                                             data-url="{{ route('secure.preview', [
                                                 'context' => 'nominative',
@@ -301,8 +299,7 @@
                                             ]) }}">
                                         Passport
                                     </button>
-                                    @endif
-                                    @if($m->photo_4x4)
+                                   
                                    <button class="btn btn-sm btn-secondary"
                                             data-toggle="modal"
                                             data-target="#previewModal"
@@ -314,7 +311,7 @@
                                             ]) }}">
                                         photo_4x4
                                     </button>
-                                     @endif
+                                   
 
                                     @if($m->music_file)
                                     <button class="btn btn-sm btn-warning preview-btn"
@@ -352,7 +349,7 @@
 
                 </tr>
 
-                            <div class="modal fade" id="editMemberModal{{ $m->id }}" tabindex="-1">
+    <div class="modal fade" id="editMemberModal{{ $m->id }}" tabindex="-1">
     <div class="modal-dialog modal-xl modal-dialog-centered">
         <div class="modal-content">
 
@@ -549,28 +546,47 @@
 
 
 
+
+
+{{-- ======================= PREVIEW MODAL (SECURE) ======================= --}}
 <div class="modal fade" id="previewModal"
      tabindex="-1"
      role="dialog"
+     aria-hidden="true"
      data-backdrop="static"
      data-keyboard="false">
 
-    <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+    <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable" role="document">
         <div class="modal-content">
 
+            {{-- HEADER --}}
             <div class="modal-header bg-primary text-white">
                 <h5 class="modal-title">
-                    <i class="fas fa-file"></i> Aperçu du document
+                    <i class="fas fa-eye"></i> Aperçu sécurisé
                 </h5>
                 <button type="button" class="close text-white" data-dismiss="modal">
                     <span>&times;</span>
                 </button>
             </div>
 
+            {{-- BODY --}}
             <div class="modal-body p-0" style="height:80vh;">
                 <div id="previewContainer"
                      class="w-100 h-100 d-flex justify-content-center align-items-center bg-light">
+
+                    <div class="text-center text-muted">
+                        <i class="fas fa-spinner fa-spin fa-2x"></i>
+                        <div class="mt-2">Chargement...</div>
+                    </div>
+
                 </div>
+            </div>
+
+            {{-- FOOTER --}}
+            <div class="modal-footer">
+                <button class="btn btn-outline-dark" data-dismiss="modal">
+                    Fermer
+                </button>
             </div>
 
         </div>
@@ -578,58 +594,79 @@
 </div>
 
 
-
-
-
 @push('scripts')
 <script>
 document.addEventListener('DOMContentLoaded', function () {
 
-    document.querySelectorAll('[data-target="#previewModal"]').forEach(btn => {
-
+    // On écoute tous les boutons qui ciblent le modal preview
+    document.querySelectorAll('.preview-btn').forEach(btn => {
         btn.addEventListener('click', function () {
 
             const url  = this.dataset.url;
-            const type = this.dataset.type || 'pdf';
+            const type = (this.dataset.type || 'pdf').toLowerCase();
+
             const container = document.getElementById('previewContainer');
 
-            container.innerHTML = '';
+            // Loader par défaut
+            container.innerHTML = `
+                <div class="text-center text-muted">
+                    <i class="fas fa-spinner fa-spin fa-2x"></i>
+                    <div class="mt-2">Chargement...</div>
+                </div>
+            `;
 
+            // IMAGE
+            if (type === 'image') {
+                container.innerHTML = `
+                    <div class="w-100 h-100 d-flex justify-content-center align-items-center">
+                        <img src="${url}"
+                             alt="Preview"
+                             class="img-fluid rounded shadow"
+                             style="max-height:100%;max-width:100%;object-fit:contain;">
+                    </div>
+                `;
+            }
+
+            // PDF
             if (type === 'pdf') {
                 container.innerHTML = `
                     <iframe src="${url}"
                             style="width:100%;height:100%;border:none;"
+                            loading="lazy"
                             sandbox="allow-same-origin allow-scripts">
-                    </iframe>`;
-            }
-
-            if (type === 'image') {
-                container.innerHTML = `
-                    <img src="${url}"
-                         class="img-fluid"
-                         style="max-height:100%;max-width:100%;object-fit:contain;">
+                    </iframe>
                 `;
             }
 
+            // AUDIO
             if (type === 'audio') {
                 container.innerHTML = `
-                    <audio controls style="width:80%;">
-                        <source src="${url}">
-                        Votre navigateur ne supporte pas l’audio.
-                    </audio>
+                    <div class="w-100 h-100 d-flex justify-content-center align-items-center">
+                        <audio controls autoplay style="width:85%;">
+                            <source src="${url}">
+                            Votre navigateur ne supporte pas l'audio.
+                        </audio>
+                    </div>
                 `;
             }
 
-            $('#previewModal').modal('show');
         });
     });
 
+    // Nettoyage du modal quand il se ferme (important)
     $('#previewModal').on('hidden.bs.modal', function () {
-        document.getElementById('previewContainer').innerHTML = '';
+        document.getElementById('previewContainer').innerHTML = `
+            <div class="text-center text-muted">
+                <i class="fas fa-file fa-2x"></i>
+                <div class="mt-2">Aucun fichier</div>
+            </div>
+        `;
     });
 
 });
 </script>
 @endpush
+
+
 
 @endsection
