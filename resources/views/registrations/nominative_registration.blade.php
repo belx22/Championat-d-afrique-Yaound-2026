@@ -82,22 +82,30 @@
         </form>
 <br>
 
-            @if($info?->flag_image)
-                <button class="btn btn-sm btn-info"
+           @if($info?->flag_image)
+                <button class="btn btn-sm btn-info preview-btn"
                         data-toggle="modal"
                         data-target="#previewModal"
                         data-type="image"
-                        data-url="{{ asset('storage/'.$info->flag_image) }}">
+                        data-url="{{ route('secure.preview', [
+                            'context' => 'delegation',
+                            'id'      => $info->id,
+                            'field'   => 'flag_image'
+                        ]) }}">
                     <i class="fas fa-flag"></i> View Flag
                 </button>
                 @endif
 
                 @if($info?->national_anthem)
-                <button class="btn btn-sm btn-warning"
+                <button class="btn btn-sm btn-warning preview-btn"
                         data-toggle="modal"
                         data-target="#previewModal"
                         data-type="audio"
-                        data-url="{{ asset('storage/'.$info->national_anthem) }}">
+                        data-url="{{ route('secure.preview', [
+                            'context' => 'delegation',
+                            'id'      => $info->id,
+                            'field'   => 'national_anthem'
+                        ]) }}">
                     <i class="fas fa-music"></i> Play Anthem
                 </button>
                 @endif
@@ -281,25 +289,43 @@
                             <td>{{ $m->category ?? '-' }}</td>
                         
                             <td class="text-center">
-                                    <button class="btn btn-sm btn-info"
-                                        data-toggle="modal"
-                                        data-target="#previewModal"
-                                        data-url="{{ asset('storage/'.$m->passport_scan) }}">
+                                 @if($m->passport_scan)
+                                    <button class="btn btn-sm btn-info preview-btn"
+                                            data-toggle="modal"
+                                            data-target="#previewModal"
+                                            data-type="pdf"
+                                            data-url="{{ route('secure.preview', [
+                                                'context' => 'nominative',
+                                                'id'      => $m->id,
+                                                'field'   => 'passport_scan'
+                                            ]) }}">
                                         Passport
                                     </button>
-
-                                    <button class="btn btn-sm btn-secondary"
-                                        data-toggle="modal"
-                                        data-target="#previewModal"
-                                        data-url="{{ asset('storage/'.$m->photo_4x4) }}">
-                                        Photo
+                                    @endif
+                                    @if($m->photo_4x4)
+                                   <button class="btn btn-sm btn-secondary"
+                                            data-toggle="modal"
+                                            data-target="#previewModal"
+                                            data-type="pdf"
+                                            data-url="{{ route('secure.preview', [
+                                                'context' => 'nominative',
+                                                'id'      => $m->id,
+                                                'field'   => 'photo_4x4'
+                                            ]) }}">
+                                        photo_4x4
                                     </button>
+                                     @endif
 
                                     @if($m->music_file)
-                                    <button class="btn btn-sm btn-warning"
-                                        data-toggle="modal"
-                                        data-target="#previewModal"
-                                        data-url="{{ asset('storage/'.$m->music_file) }}">
+                                    <button class="btn btn-sm btn-warning preview-btn"
+                                            data-toggle="modal"
+                                            data-target="#previewModal"
+                                            data-type="audio"
+                                            data-url="{{ route('secure.preview', [
+                                                'context' => 'nominative',
+                                                'id'      => $m->id,
+                                                'field'   => 'music_file'
+                                            ]) }}">
                                         Music
                                     </button>
                                     @endif
@@ -523,23 +549,28 @@
 
 
 
+<div class="modal fade" id="previewModal"
+     tabindex="-1"
+     role="dialog"
+     data-backdrop="static"
+     data-keyboard="false">
 
-<div class="modal fade" id="previewModal" tabindex="-1">
-    <div class="modal-dialog modal-xl modal-dialog-centered">
+    <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
         <div class="modal-content">
 
-            <div class="modal-header">
-                <h5 class="modal-title">Document Preview</h5>
-                <button type="button" class="close" data-dismiss="modal">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title">
+                    <i class="fas fa-file"></i> Aperçu du document
+                </h5>
+                <button type="button" class="close text-white" data-dismiss="modal">
                     <span>&times;</span>
                 </button>
             </div>
 
-            <div class="modal-body" style="height:80vh">
-                <iframe id="previewFrame"
-                        src=""
-                        style="width:100%;height:100%;border:none;">
-                </iframe>
+            <div class="modal-body p-0" style="height:80vh;">
+                <div id="previewContainer"
+                     class="w-100 h-100 d-flex justify-content-center align-items-center bg-light">
+                </div>
             </div>
 
         </div>
@@ -548,71 +579,57 @@
 
 
 
-<div class="modal fade" id="previewModal" tabindex="-1" role="dialog">
-    <div class="modal-dialog modal-xl modal-dialog-centered" role="document">
-        <div class="modal-content">
 
-            <div class="modal-header">
-                <h5 class="modal-title">Preview</h5>
-                <button type="button" class="close" data-dismiss="modal">
-                    <span>&times;</span>
-                </button>
-            </div>
-
-            <div class="modal-body p-0 d-flex justify-content-center align-items-center"
-                 style="height:80vh;">
-
-                <!-- IMAGE -->
-                <img id="previewImage"
-                     src=""
-                     class="img-fluid d-none"
-                     style="max-height:100%;max-width:100%;" />
-
-                <!-- AUDIO -->
-                <audio id="previewAudio"
-                       controls
-                       class="w-75 d-none">
-                </audio>
-
-            </div>
-
-        </div>
-    </div>
-</div>
 
 @push('scripts')
 <script>
-$('#previewModal').on('show.bs.modal', function (event) {
+document.addEventListener('DOMContentLoaded', function () {
 
-    let button = $(event.relatedTarget);
-    let url = button.data('url');
-    let type = button.data('type');
+    document.querySelectorAll('[data-target="#previewModal"]').forEach(btn => {
 
-    let modal = $(this);
+        btn.addEventListener('click', function () {
 
-    // Reset
-    modal.find('#previewImage').addClass('d-none').attr('src','');
-    modal.find('#previewAudio').addClass('d-none').attr('src','');
+            const url  = this.dataset.url;
+            const type = this.dataset.type || 'pdf';
+            const container = document.getElementById('previewContainer');
 
-    if (type === 'image') {
-        modal.find('#previewImage')
-            .removeClass('d-none')
-            .attr('src', url);
-    }
+            container.innerHTML = '';
 
-    if (type === 'audio') {
-        modal.find('#previewAudio')
-            .removeClass('d-none')
-            .attr('src', url)[0].load();
-    }
-});
+            if (type === 'pdf') {
+                container.innerHTML = `
+                    <iframe src="${url}"
+                            style="width:100%;height:100%;border:none;"
+                            sandbox="allow-same-origin allow-scripts">
+                    </iframe>`;
+            }
 
-// Nettoyage à la fermeture
-$('#previewModal').on('hidden.bs.modal', function () {
-    $('#previewAudio').trigger('pause').attr('src','');
+            if (type === 'image') {
+                container.innerHTML = `
+                    <img src="${url}"
+                         class="img-fluid"
+                         style="max-height:100%;max-width:100%;object-fit:contain;">
+                `;
+            }
+
+            if (type === 'audio') {
+                container.innerHTML = `
+                    <audio controls style="width:80%;">
+                        <source src="${url}">
+                        Votre navigateur ne supporte pas l’audio.
+                    </audio>
+                `;
+            }
+
+            $('#previewModal').modal('show');
+        });
+    });
+
+    $('#previewModal').on('hidden.bs.modal', function () {
+        document.getElementById('previewContainer').innerHTML = '';
+    });
+
 });
 </script>
 @endpush
-
 
 @endsection

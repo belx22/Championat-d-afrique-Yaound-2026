@@ -7,6 +7,8 @@ use Illuminate\Http\Request;
 use App\Models\Delegation;
 use App\Models\NominativeRegistration;
 use Barryvdh\DomPDF\Facade\Pdf;
+use App\Exports\AccreditationsExport;
+use Maatwebsite\Excel\Facades\Excel;
 
 
 use App\Models\Accreditation;
@@ -123,4 +125,48 @@ public function scan(Request $request)
     ]);
 }
 
+
+public function showByDelegation(Delegation $delegation)
+    {
+        $members = $delegation->nominativeRegistrations()
+            ->with('accreditation')
+            ->get()
+            ->groupBy('function');
+
+        return view('admin.accreditations.delegation', compact(
+            'delegation',
+            'members'
+        ));
+    }
+
+     public function exportExcel()
+    {
+        return Excel::download(
+            new AccreditationsExport,
+            'accreditations_'.now()->format('Ymd_His').'.xlsx'
+        );
+    }
+
+
+public function badgesPdf(Delegation $delegation)
+    {
+        $members = $delegation->nominativeRegistrations()
+            ->with('accreditation')
+            ->orderBy('function')
+            ->orderBy('family_name')
+            ->get();
+
+        $pdf = Pdf::loadView(
+            'admin.accreditations.badges-pdf',
+            compact('delegation','members')
+        )->setPaper('a4', 'portrait');
+
+        return $pdf->stream(
+            'badges_'.$delegation->country.'.pdf'
+        );
+    }
+
+
 }
+
+

@@ -47,6 +47,12 @@
     </div>
 </div>
 
+
+<a href="{{ route('admin.accreditations.export.excel') }}"
+   class="btn btn-success mb-3">
+    <i class="fas fa-file-excel"></i> Export Excel global
+</a>
+
 {{-- ================= TABLE ================= --}}
 <div class="card shadow">
     <div class="card-body table-responsive">
@@ -79,7 +85,7 @@
 
                     <td class="text-center">
                         @if($d->nominative_registrations_count > 0)
-                            <a href="{{ route('admin.accreditations.show', $d) }}"
+                            <a href="{{ route('admin.accreditations.showByDelegation', $d) }}"
                                class="btn btn-sm btn-primary">
                                 <i class="fas fa-id-card"></i>
                                 Gérer badges

@@ -46,7 +46,11 @@
                     <button class="btn btn-sm btn-info"
                         data-toggle="modal"
                         data-target="#previewModal"
-                        data-url="{{ asset('storage/'.$registration->signed_document) }}">
+                        data-url="{{ route('secure.preview', [
+                                                'context' => 'nominative',
+                                                'id'      => $m->id,
+                                                'field'   => 'signed_document'
+                                            ]) }}">
                         View Document
                     </button>
                 @else
@@ -197,7 +201,28 @@
 
 </form>
 
+  <div class="col-md-4">
+        <div class="card border-left-success shadow">
+            <div class="card-body">
+                <strong>Signed Document</strong><br>
 
+                @if($registration->signed_document)
+                    <button class="btn btn-sm btn-info"
+                        data-toggle="modal"
+                        data-target="#previewModal"
+                        data-url="{{ route('secure.preview', [
+                                                'context' => 'nominative',
+                                                'id'      => $m->id,
+                                                'field'   => 'signed_document'
+                                            ]) }}">
+                        View Document
+                    </button>
+                @else
+                    <span class="text-danger">Not uploaded</span>
+                @endif
+            </div>
+        </div>
+    </div>
 </div>
 
 

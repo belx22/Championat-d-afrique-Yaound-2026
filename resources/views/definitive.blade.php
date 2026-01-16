@@ -46,12 +46,16 @@
                 <strong>Signed Document</strong><br>
 
                 @if($registration->signed_document)
-                    <button class="btn btn-sm btn-info"
+                    <button class="btn btn-sm btn-primary"
                         data-toggle="modal"
-                        data-target="#previewModal"
-                        data-url="{{ asset('storage/'.$registration->signed_document) }}">
-                        View Document
-                    </button>
+                        data-target="#previewSignedDocumentModal">
+                    <i class="fas fa-eye"></i> Preview
+                </button>
+
+
+
+
+                    
                 @else
                     <span class="text-danger">Not uploaded</span>
                 @endif
@@ -199,31 +203,95 @@
 </div>
 
 
-<div class="modal fade" id="previewModal" tabindex="-1">
-    <div class="modal-dialog modal-xl modal-dialog-centered">
+
+
+
+@if($registration->signed_document)
+
+<div class="modal fade"
+     id="previewSignedDocumentModal"
+     tabindex="-1"
+     role="dialog"
+     data-backdrop="static"
+     data-keyboard="false">
+
+    <div class="modal-dialog modal-xl modal-dialog-centered" role="document">
         <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Document Preview</h5>
-                <button class="close" data-dismiss="modal">&times;</button>
+
+            {{-- HEADER --}}
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title">
+                    <i class="fas fa-file-signature"></i>
+                    Document signé – Definitive Registration
+                </h5>
+                <button type="button"
+                        class="close text-white"
+                        data-dismiss="modal">
+                    <span>&times;</span>
+                </button>
             </div>
-            <div class="modal-body" style="height:80vh">
-                <iframe id="previewFrame"
-                        src=""
-                        style="width:100%;height:100%;border:none;"></iframe>
+
+            {{-- BODY --}}
+            <div class="modal-body p-0" style="height:90vh">
+
+                @php
+                    $previewUrl = route('secure.preview', [
+                        'definitive',
+                        $registration->id,
+                        'signed_document'
+                    ]);
+
+                    $ext = strtolower(pathinfo(
+                        $registration->signed_document,
+                        PATHINFO_EXTENSION
+                    ));
+                @endphp
+
+                {{-- PDF --}}
+                @if($ext === 'pdf')
+                    <iframe src="{{ $previewUrl }}"
+                            style="width:100%;height:100%;border:none;"
+                            loading="lazy">
+                    </iframe>
+
+                {{-- IMAGE --}}
+                @elseif(in_array($ext, ['jpg','jpeg','png','webp']))
+                    <div class="d-flex justify-content-center align-items-center h-100 bg-light">
+                        <img src="{{ $previewUrl }}"
+                             class="img-fluid rounded shadow"
+                             style="max-height:100%;max-width:100%;object-fit:contain;"
+                             alt="Document signé">
+                    </div>
+
+                {{-- AUTRE --}}
+                @else
+                    <div class="alert alert-warning m-4 text-center">
+                        Aperçu non disponible pour ce format.
+                    </div>
+                @endif
+
             </div>
+
+            {{-- FOOTER --}}
+            <div class="modal-footer justify-content-between">
+                <span class="text-muted small">
+                    <i class="fas fa-lock"></i>
+                    Consultation sécurisée – téléchargement désactivé
+                </span>
+
+                <button class="btn btn-outline-dark"
+                        data-dismiss="modal">
+                    Fermer
+                </button>
+            </div>
+
         </div>
     </div>
 </div>
 
-@push('scripts')
-<script>
-$('#previewModal').on('show.bs.modal', function (e) {
-    $('#previewFrame').attr(
-        'src',
-        $(e.relatedTarget).data('url')
-    );
-});
-</script>
-@endpush
+@endif
+
+
+
 
 @endsection
