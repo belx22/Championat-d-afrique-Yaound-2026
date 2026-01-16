@@ -385,21 +385,16 @@ Route::middleware(['auth:championat','role:super-admin,admin-local'])
 
 Route::middleware(['auth:championat'])->group(function () {
     
-    // Accommodation index (role-based: admin sees config, federation sees listing)
-    Route::get('/accommodation', [HotelController::class, 'index'])->name('accommodation.index');
-    
-    // Accommodation Dashboard (Super Admin / Local Admin only)
-    Route::middleware(['role:super-admin,admin-local'])->group(function () {
-        Route::get('/accommodation/dashboard', [\App\Http\Controllers\AccommodationDashboardController::class, 'index'])
-            ->name('accommodation.dashboard');
-    });
-    
     // Hotel management (Super Admin / Local Admin only)
     Route::middleware(['role:super-admin,admin-local'])->group(function () {
-Route::post('/hotels', [HotelController::class, 'store'])->name('hotels.store');
+       
+        Route::get('/accommodation', [\App\Http\Controllers\AccommodationDashboardController::class, 'index'])
+            ->name('accommodation.dashboard');
+        Route::get('/hotels', [HotelController::class, 'index'])->name('accommodation.index');
+        Route::post('/hotels', [HotelController::class, 'store'])->name('hotels.store');
         Route::put('/hotels/{hotel}', [HotelController::class, 'update'])->name('hotels.update');
         Route::delete('/hotels/{hotel}', [HotelController::class, 'destroy'])->name('hotels.destroy');
-Route::post('/rooms', [RoomController::class, 'store'])->name('rooms.store');
+        Route::post('/rooms', [RoomController::class, 'store'])->name('rooms.store');
         Route::put('/rooms/{room}', [RoomController::class, 'update'])->name('rooms.update');
         Route::delete('/rooms/{room}', [RoomController::class, 'destroy'])->name('rooms.destroy');
 
@@ -430,6 +425,7 @@ Route::post('/rooms', [RoomController::class, 'store'])->name('rooms.store');
     
     // Hotel details & reservation creation (Federation Admin only)
     Route::middleware(['role:admin-federation'])->group(function () {
+        Route::get('/hotels', [HotelController::class, 'index'])->name('accommodation.index');
         Route::get('/accommodation/hotel/{hotel}', [HotelController::class, 'show'])
             ->name('accommodation.federation.hotel.show');
         Route::post('/reservations', [RoomReservationController::class, 'store'])

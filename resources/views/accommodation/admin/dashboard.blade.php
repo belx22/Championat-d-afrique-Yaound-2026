@@ -87,8 +87,7 @@
                     <small class="text-muted">Paiements de 50% en attente de validation</small>
                 </div>
             </div>
-        </div>
-        <div class="col-md-6">
+
             <div class="card shadow mb-4">
                 <div class="card-header bg-info text-white">
                     <h6 class="m-0 font-weight-bold">Paiements en Attente - 100%</h6>
@@ -99,12 +98,7 @@
                 </div>
             </div>
         </div>
-    </div>
-
-    {{-- Charts Row --}}
-    <div class="row mb-4">
-        {{-- Reservations by Status Pie Chart --}}
-        <div class="col-xl-6 col-lg-6">
+        <div class="col-md-6">
             <div class="card shadow mb-4">
                 <div class="card-header py-3">
                     <h6 class="m-0 font-weight-bold text-primary">Réservations par Statut</h6>
@@ -114,62 +108,10 @@
                 </div>
             </div>
         </div>
-
-        {{-- Reservations Evolution (30 days) --}}
-        <div class="col-xl-6 col-lg-6">
-            <div class="card shadow mb-4">
-                <div class="card-header py-3">
-                    <h6 class="m-0 font-weight-bold text-primary">Évolution des Réservations (30 derniers jours)</h6>
-                </div>
-                <div class="card-body">
-                    <canvas id="reservationsEvolutionChart"></canvas>
-                </div>
-            </div>
-        </div>
     </div>
 
-    {{-- Revenue Charts Row --}}
-    <div class="row mb-4">
-        {{-- Monthly Revenue --}}
-        <div class="col-xl-6 col-lg-6">
-            <div class="card shadow mb-4">
-                <div class="card-header py-3">
-                    <h6 class="m-0 font-weight-bold text-primary">Revenus Mensuels (6 derniers mois)</h6>
-                </div>
-                <div class="card-body">
-                    <canvas id="monthlyRevenueChart"></canvas>
-                </div>
-            </div>
-        </div>
-
-        {{-- Revenue Evolution (30 days) --}}
-        <div class="col-xl-6 col-lg-6">
-            <div class="card shadow mb-4">
-                <div class="card-header py-3">
-                    <h6 class="m-0 font-weight-bold text-primary">Évolution des Revenus (30 derniers jours)</h6>
-                </div>
-                <div class="card-body">
-                    <canvas id="revenueEvolutionChart"></canvas>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    {{-- Top Hotels by Revenue --}}
-    @if(isset($stats['hotels_revenue']) && $stats['hotels_revenue']->count() > 0)
-    <div class="row mb-4">
-        <div class="col-xl-12">
-            <div class="card shadow mb-4">
-                <div class="card-header py-3">
-                    <h6 class="m-0 font-weight-bold text-primary">Top 10 Hôtels par Revenus</h6>
-                </div>
-                <div class="card-body">
-                    <canvas id="hotelsRevenueChart"></canvas>
-                </div>
-            </div>
-        </div>
-    </div>
-    @endif
+    
+    
 
     {{-- Top Hotels by Occupancy --}}
     <div class="row mb-4">

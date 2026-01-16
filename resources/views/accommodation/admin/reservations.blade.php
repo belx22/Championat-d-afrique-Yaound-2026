@@ -188,146 +188,119 @@
     <div class="card shadow mb-4">
         <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
             <h5 class="mb-0"><i class="fas fa-list"></i> Liste des Réservations</h5>
-            <div>
+           <!-- <div>
                 <button type="button" class="btn btn-sm btn-light" onclick="toggleBulkSelection()">
                     <i class="fas fa-check-square"></i> Sélection multiple
                 </button>
-            </div>
+            </div> -->
         </div>
         <div class="card-body">
             <div class="table-responsive">
-                <table class="table table-bordered table-hover">
-                    <thead class="thead-light">
-                        <tr>
-                            <th width="30" id="selectAllTh" style="display: none;">
-                                <input type="checkbox" id="selectAllPayments" onchange="toggleAllPayments(this)">
-                            </th>
-                            <th>ID</th>
-                            <th>Délégation</th>
-                            <th>Hôtel</th>
-                            <th>Type de chambre</th>
-                            <th>Nombre de chambres</th>
-                            <th>Dates</th>
-                            <th>Coût total</th>
-                            <th>Paiement 50%</th>
-                            <th>Paiement 100%</th>
-                            <th>Statut</th>
-                            <th>Date de réservation</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @forelse($reservations as $reservation)
-                            <tr class="{{ $reservation->is_cancelled ? 'table-danger' : '' }}">
-                                <td class="bulk-select-cell" style="display: none;">
-                                    @if($reservation->payment50 && $reservation->payment50->status === 'en_attente')
-                                        <input type="checkbox" class="payment-checkbox" 
-                                               value="{{ $reservation->payment50->id }}" 
-                                               data-payment-type="50"
-                                               onchange="updateBulkSelection()">
-                                    @endif
-                                    @if($reservation->payment100 && $reservation->payment100->status === 'en_attente')
-                                        <input type="checkbox" class="payment-checkbox" 
-                                               value="{{ $reservation->payment100->id }}" 
-                                               data-payment-type="100"
-                                               onchange="updateBulkSelection()">
-                                    @endif
-                                </td>
-                                <td>#{{ $reservation->id }}</td>
-                                <td>
-                                    <strong>{{ $reservation->delegation->country }}</strong><br>
-                                    <small class="text-muted">{{ $reservation->delegation->federation_name }}</small>
-                                </td>
-                                <td>
-                                    {{ $reservation->room->hotel->name }}<br>
-                                    <small class="text-muted">{{ $reservation->room->hotel->city }}</small>
-                                </td>
-                                <td>{{ ucfirst($reservation->room->type) }}</td>
-                                <td>{{ $reservation->rooms_reserved }}</td>
-                                <td>
-                                    @if($reservation->check_in_date && $reservation->check_out_date)
-                                        {{ $reservation->check_in_date->format('d/m/Y') }} → {{ $reservation->check_out_date->format('d/m/Y') }}
-                                        <br><small class="text-muted">{{ $reservation->number_of_nights ?? $reservation->calculateNights() }} nuit(s)</small>
-                                    @else
-                                        <span class="text-muted">Non défini</span>
-                                    @endif
-                                </td>
-                                <td><strong>{{ number_format($reservation->total_cost) }} FCFA</strong></td>
-                                <td>
-                                    @if($reservation->payment50)
-                                        @if($reservation->payment50->status === 'valide')
-                                            <span class="badge badge-success">Validé</span>
-                                        @elseif($reservation->payment50->status === 'rejete')
-                                            <span class="badge badge-danger">Rejeté</span>
-                                        @else
-                                            <span class="badge badge-warning">En attente</span>
-                                            @if($reservation->payment50->isOverdue())
-                                                <br><small class="text-danger">En retard!</small>
-                                            @endif
-                                        @endif
-                                    @else
-                                        <span class="badge badge-secondary">Non payé</span>
-                                    @endif
-                                </td>
-                                <td>
-                                    @if($reservation->payment100)
-                                        @if($reservation->payment100->status === 'valide')
-                                            <span class="badge badge-success">Validé</span>
-                                        @elseif($reservation->payment100->status === 'rejete')
-                                            <span class="badge badge-danger">Rejeté</span>
-                                        @else
-                                            <span class="badge badge-warning">En attente</span>
-                                            @if($reservation->payment100->isOverdue())
-                                                <br><small class="text-danger">En retard!</small>
-                                            @endif
-                                        @endif
-                                    @else
-                                        <span class="badge badge-secondary">Non payé</span>
-                                    @endif
-                                </td>
-                                <td>
-                                    @if($reservation->is_cancelled)
-                                        <span class="badge badge-danger">Annulée</span>
-                                            @if($reservation->cancellation_reason)
-                                                <br><small class="text-muted">{{ \Illuminate\Support\Str::limit($reservation->cancellation_reason, 30) }}</small>
-                                            @endif
-                                    @elseif($reservation->isFullyPaid())
-                                        <span class="badge badge-success">Confirmée</span>
-                                    @else
-                                        <span class="badge badge-warning">En attente</span>
-                                    @endif
-                                </td>
-                                <td>{{ $reservation->created_at->format('d/m/Y H:i') }}</td>
-                                <td>
-                                    <a href="{{ route('reservations.show', $reservation) }}" 
-                                       class="btn btn-sm btn-primary">
-                                        <i class="fas fa-eye"></i> Voir
-                                    </a>
-                                </td>
-                            </tr>
-                        @empty
-                            <tr>
-                                <td colspan="13" class="text-center">
-                                    @if($request->hasAny(['delegation_id', 'hotel_id', 'status']))
-                                        Aucune réservation trouvée avec ces critères.
-                                    @else
-                                        Aucune réservation trouvée.
-                                    @endif
-                                </td>
-                            </tr>
-                        @endforelse
-                    </tbody>
+                
+
+                    <table class="table table-bordered table-sm">
+    <thead class="bg-light">
+        <tr>
+            <th>Délégation</th>
+            <th>Hôtel</th>
+            <th>Type de chambre</th>
+            <th>Nombre de chambres</th>
+            <th>Période</th>
+            <th>Coût</th>
+            <th>Date de réservation</th>
+            <th>Statut</th>
+            <th>Coût total</th>
+            <th>Paiement</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+
+    <tbody>
+    @forelse($reservations as $delegationReservations)
+
+        @php
+            $rowspan = $delegationReservations->count();
+            $delegation = $delegationReservations->first()->delegation;
+
+            $totalDelegation = $delegationReservations->sum(function ($r) {
+                return $r->total_cost;
+            });
+        @endphp
+
+        @foreach($delegationReservations as $index => $reservation)
+            <tr>
+
+                {{-- DÉLÉGATION (une seule fois) --}}
+                @if($index === 0)
+                    <td rowspan="{{ $rowspan }}" class="align-middle text-center font-weight-bold">
+                        {{ strtolower($delegation->country) }}
+                    </td>
+                @endif
+
+                <td>{{ $reservation->room->hotel->name }}</td>
+                <td>{{ $reservation->room->type }}</td>
+                <td>{{ $reservation->rooms_reserved }}</td>
+
+                <td>
+                    {{ $reservation->check_in_date?->format('d/m') }}
+                    -
+                    {{ $reservation->check_out_date?->format('d/m/Y') }}
+                </td>
+
+                <td>{{ number_format($reservation->room->price) }}</td>
+
+                <td>{{ $reservation->created_at->format('d/m/Y') }}</td>
+
+                <td>
+                    @if($reservation->is_cancelled)
+                        <span class="badge badge-danger">annulé</span>
+                    @else
+                        <span class="badge badge-success">ok</span>
+                    @endif
+                </td>
+
+                {{-- COÛT TOTAL (une seule fois) --}}
+                @if($index === 0)
+                    <td rowspan="{{ $rowspan }}" class="align-middle text-center font-weight-bold">
+                        {{ number_format($totalDelegation) }}
+                    </td>
+                @endif
+
+                @if($index === 0)
+                <td rowspan="{{ $rowspan }}" class="text-center">
+                    @if($reservation->isFullyPaid())
+                        <span class="badge badge-success">Payé</span>
+                    @else
+                        <span class="badge badge-warning">En attente</span>
+                    @endif
+                </td>
+                @endif
+
+                @if ($index===0)
+                    <td rowspan="{{ $rowspan }}" class="align-middle text-center">
+                    <a href="#" class="btn btn-sm btn-outline-primary">Voir</a>
+                    </td>
+                @endif
+            </tr>
+        @endforeach
+
+    @empty
+        <tr>
+            <td colspan="11" class="text-center text-muted">
+                Aucune réservation
+            </td>
+        </tr>
+    @endforelse
+    </tbody>
+</table>
+
+
                 </table>
             </div>
         </div>
     </div>
 
-    {{-- Pagination --}}
-    @if(method_exists($reservations, 'links'))
-        <div class="d-flex justify-content-center mt-4">
-            {{ $reservations->links() }}
-        </div>
-    @endif
+    {{-- Pagination removed since data is grouped --}}
 
 </div>
 @endsection
