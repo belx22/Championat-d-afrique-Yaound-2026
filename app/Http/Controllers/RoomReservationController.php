@@ -79,7 +79,8 @@ class RoomReservationController extends Controller
             $sortOrder = $request->get('sort_order', 'desc');
             $query->orderBy($sortBy, $sortOrder);
             
-            $reservations = $query->paginate(20)->withQueryString();
+            $allReservations = $query->get();
+            $reservations = $allReservations->groupBy('delegation_id');
             
             // Statistics with eager loading for better performance
             $now = \Carbon\Carbon::now();
@@ -152,6 +153,7 @@ class RoomReservationController extends Controller
                 ->with([
                     'room:id,hotel_id,type,price',
                     'room.hotel:id,name,city',
+                    'delegation:id,country,federation_name,contact_person,email,phone',
                     'payments:id,room_reservation_id,payment_type,status,receipt_path,created_at'
                 ]);
             
@@ -173,12 +175,13 @@ class RoomReservationController extends Controller
             $sortOrder = $request->get('sort_order', 'desc');
             $query->orderBy($sortBy, $sortOrder);
             
-            $reservations = $query->paginate(15)->withQueryString();
+            $allReservations = $query->get();
+            $reservations = $allReservations->groupBy('delegation_id');
 
             return view('accommodation.federation.reservations', compact('reservations', 'request'));
         }
 
-        abort(403, 'Access denied');
+        abort(403, 'Access denied ');
     }
 
     /**
@@ -406,7 +409,8 @@ class RoomReservationController extends Controller
         } elseif ($user->role === 'admin-federation') {
             // Federation admin can only view their own reservations
             if ($reservation->delegation_id !== $user->delegation_id) {
-                abort(403, 'Access denied');
+                abort(403, 'Vous ne pouvez pas accéder au réservation des autres délégations.');
+                              
             }
             $reservation->load([
                 'room.hotel',

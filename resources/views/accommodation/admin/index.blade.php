@@ -3,7 +3,7 @@
 @section('content')
 <div class="container-fluid">
 
-    <h1 class="h3 mb-4 text-gray-800">Hébergement – Configuration des Hôtels</h1>
+    <h1 class="h3 mb-4 text-gray-800">Accommodation – Configuration des Hôtels</h1>
     
     @include('accommodation._responsive-styles')
 
@@ -29,11 +29,8 @@
         </div>
     @endif
 
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <button class="btn btn-primary" data-toggle="modal" data-target="#createHotelModal">
-            <i class="fas fa-hotel"></i> Ajouter un hôtel
-        </button>
-        
+    <div class="d-flex justify-content-center align-items-center mb-3">
+            
         {{-- Statistics Cards --}}
         <div class="row">
             <div class="col-md-2">
@@ -89,75 +86,10 @@
     </div>
 
     {{-- Filters --}}
-    <div class="card shadow mb-4">
-        <div class="card-body">
-            <form method="GET" action="{{ route('accommodation.index') }}" class="row g-3">
-                <div class="col-md-3">
-                    <input type="text" name="search" class="form-control" placeholder="Rechercher..." 
-                           value="{{ $request->search ?? '' }}">
-                </div>
-                <div class="col-md-2">
-                    <select name="city" class="form-control">
-                        <option value="">Toutes les villes</option>
-                        @foreach($cities ?? [] as $city)
-                            <option value="{{ $city }}" {{ $request->city == $city ? 'selected' : '' }}>
-                                {{ $city }}
-                            </option>
-                        @endforeach
-                    </select>
-                </div>
-                <div class="col-md-2">
-                    <select name="standing" class="form-control">
-                        <option value="">Tous les standings</option>
-                        @for($i = 2; $i <= 5; $i++)
-                            <option value="{{ $i }}" {{ $request->standing == $i ? 'selected' : '' }}>
-                                {{ $i }} ★
-                            </option>
-                        @endfor
-                    </select>
-                </div>
-                <div class="col-md-2">
-                    <input type="number" name="min_price" class="form-control" placeholder="Prix min (FCFA)"
-                           value="{{ $request->min_price ?? '' }}" min="0">
-                </div>
-                <div class="col-md-2">
-                    <input type="number" name="max_price" class="form-control" placeholder="Prix max (FCFA)"
-                           value="{{ $request->max_price ?? '' }}" min="0">
-                </div>
-                <div class="col-md-1">
-                    <button type="submit" class="btn btn-primary w-100" title="Rechercher">
-                        <i class="fas fa-search"></i>
-                    </button>
-                </div>
-                <div class="col-md-12 mt-2">
-                    <div class="form-check">
-                        <input class="form-check-input" type="checkbox" name="has_available_rooms" id="has_available_rooms" 
-                               value="1" {{ $request->has_available_rooms ? 'checked' : '' }}>
-                        <label class="form-check-label" for="has_available_rooms">
-                            Uniquement les hôtels avec chambres disponibles
-                        </label>
-                    </div>
-                </div>
-                <div class="col-md-12 mt-2">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <select name="sort_by" class="form-control col-md-3">
-                            <option value="name" {{ $request->sort_by == 'name' ? 'selected' : '' }}>Trier par: Nom</option>
-                            <option value="city" {{ $request->sort_by == 'city' ? 'selected' : '' }}>Trier par: Ville</option>
-                            <option value="standing" {{ $request->sort_by == 'standing' ? 'selected' : '' }}>Trier par: Standing</option>
-                        </select>
-                        <select name="sort_order" class="form-control col-md-2">
-                            <option value="asc" {{ $request->sort_order == 'asc' ? 'selected' : '' }}>Croissant</option>
-                            <option value="desc" {{ $request->sort_order == 'desc' ? 'selected' : '' }}>Décroissant</option>
-                        </select>
-                        @if($request->hasAny(['search', 'city', 'standing', 'min_price', 'max_price', 'has_available_rooms', 'sort_by']))
-                            <a href="{{ route('accommodation.index') }}" class="btn btn-sm btn-secondary">
-                                <i class="fas fa-times"></i> Réinitialiser
-                            </a>
-                        @endif
-                    </div>
-                </div>
-            </form>
-        </div>
+    <div class="card shadow mb-4">        
+        <button class="btn btn-primary" data-toggle="modal" data-target="#createHotelModal">
+            <i class="fas fa-hotel"></i> Ajouter un hôtel
+        </button>
     </div>
 
     <div class="row">

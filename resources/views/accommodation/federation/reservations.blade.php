@@ -23,7 +23,7 @@
     </div>
 
     {{-- Filters --}}
-    @if(method_exists($reservations, 'total') && $reservations->total() > 0)
+    @if($reservations->isNotEmpty())
         <div class="card shadow mb-4">
             <div class="card-body">
                 <form method="GET" action="{{ route('reservations.index') }}" class="row g-3">
@@ -85,68 +85,80 @@
                         </tr>
                     </thead>
                     <tbody>
-                        @forelse($reservations as $reservation)
-                            <tr class="{{ $reservation->is_cancelled ? 'table-danger' : '' }}">
+                        @foreach($reservations as $delegationId => $delegationReservations)
+                            @php
+                                // Aggregate data for federation (their own delegation)
+                                $totalRooms = $delegationReservations->sum('rooms_reserved');
+                                $totalCost = $delegationReservations->sum('total_cost');
+                                
+                                // Hotels and types
+                                $hotels = $delegationReservations->map(function($r) {
+                                    return $r->room->hotel->name . ' (' . $r->room->hotel->city . ')';
+                                })->unique()->implode('<br>');
+                                
+                                $roomTypes = $delegationReservations->map(function($r) {
+                                    return ucfirst($r->room->type);
+                                })->unique()->implode(', ');
+                                
+                                // Payment statuses
+                                $allPayment50Valid = $delegationReservations->every(function($r) {
+                                    return $r->hasValidPayment50();
+                                });
+                                $allPayment100Valid = $delegationReservations->every(function($r) {
+                                    return $r->hasValidPayment100();
+                                });
+                                
+                                // Global status
+                                $allFullyPaid = $delegationReservations->every(function($r) {
+                                    return $r->isFullyPaid();
+                                });
+                                $anyCancelled = $delegationReservations->contains('is_cancelled', true);
+                                
+                                // Earliest reservation date
+                                $earliestDate = $delegationReservations->min('created_at')->format('d/m/Y H:i');
+                            @endphp
+                            <tr>
+                                <td>{{ $hotels }}</td>
+                                <td>{{ $roomTypes }}</td>
+                                <td>{{ $totalRooms }}</td>
+                                <td><strong>{{ number_format($totalCost) }} FCFA</strong></td>
                                 <td>
-                                    {{ $reservation->room->hotel->name }}<br>
-                                    <small class="text-muted">{{ $reservation->room->hotel->city }}</small>
-                                </td>
-                                <td>{{ ucfirst($reservation->room->type) }}</td>
-                                <td>{{ $reservation->rooms_reserved }}</td>
-                                <td><strong>{{ number_format($reservation->total_cost) }} FCFA</strong></td>
-                                <td>
-                                    @if($reservation->payment50)
-                                        @if($reservation->payment50->status === 'valide')
-                                            <span class="badge badge-success">Validé</span>
-                                        @elseif($reservation->payment50->status === 'rejete')
-                                            <span class="badge badge-danger">Rejeté</span>
-                                        @else
-                                            <span class="badge badge-warning">En attente</span>
-                                            @if($reservation->payment50->isOverdue())
-                                                <br><small class="text-danger">En retard!</small>
-                                            @endif
-                                        @endif
+                                    @if($allPayment50Valid)
+                                        <span class="badge badge-success">Validé</span>
+                                    @elseif($delegationReservations->some(function($r) { return $r->payment50 && $r->payment50->status === 'en_attente'; }))
+                                        <span class="badge badge-warning">En attente</span>
                                     @else
                                         <span class="badge badge-secondary">Non payé</span>
                                     @endif
                                 </td>
                                 <td>
-                                    @if($reservation->payment100)
-                                        @if($reservation->payment100->status === 'valide')
-                                            <span class="badge badge-success">Validé</span>
-                                        @elseif($reservation->payment100->status === 'rejete')
-                                            <span class="badge badge-danger">Rejeté</span>
-                                        @else
-                                            <span class="badge badge-warning">En attente</span>
-                                            @if($reservation->payment100->isOverdue())
-                                                <br><small class="text-danger">En retard!</small>
-                                            @endif
-                                        @endif
+                                    @if($allPayment100Valid)
+                                        <span class="badge badge-success">Validé</span>
+                                    @elseif($delegationReservations->some(function($r) { return $r->payment100 && $r->payment100->status === 'en_attente'; }))
+                                        <span class="badge badge-warning">En attente</span>
                                     @else
                                         <span class="badge badge-secondary">Non payé</span>
                                     @endif
                                 </td>
                                 <td>
-                                    @if($reservation->is_cancelled)
+                                    @if($anyCancelled)
                                         <span class="badge badge-danger">Annulée</span>
-                                            @if($reservation->cancellation_reason)
-                                                <br><small class="text-muted">{{ \Illuminate\Support\Str::limit($reservation->cancellation_reason, 30) }}</small>
-                                            @endif
-                                    @elseif($reservation->isFullyPaid())
+                                    @elseif($allFullyPaid)
                                         <span class="badge badge-success">Confirmée</span>
                                     @else
                                         <span class="badge badge-warning">En attente</span>
                                     @endif
                                 </td>
-                                <td>{{ $reservation->created_at->format('d/m/Y H:i') }}</td>
+                                <td>{{ $earliestDate }}</td>
                                 <td>
-                                    <a href="{{ route('reservations.show', $reservation) }}" 
+                                    <a href="{{ route('reservations.show', $delegationReservations->first()) }}" 
                                        class="btn btn-sm btn-primary">
                                         <i class="fas fa-eye"></i> Détails
                                     </a>
                                 </td>
                             </tr>
-                        @empty
+                        @endforeach
+                        @if($reservations->isEmpty())
                             <tr>
                                 <td colspan="9" class="text-center">
                                     @if($request->hasAny(['status']))
@@ -156,19 +168,12 @@
                                     @endif
                                 </td>
                             </tr>
-                        @endforelse
+                        @endif
                     </tbody>
                 </table>
             </div>
         </div>
     </div>
-
-    {{-- Pagination --}}
-    @if(method_exists($reservations, 'links'))
-        <div class="d-flex justify-content-center mt-4">
-            {{ $reservations->links() }}
-        </div>
-    @endif
 
     <div class="card shadow mt-4">
         <div class="card-body text-center">
