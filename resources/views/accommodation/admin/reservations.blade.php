@@ -222,7 +222,8 @@
             $rowspan = $delegationReservations->count();
             $delegation = $delegationReservations->first()->delegation;
 
-            $totalDelegation = $delegationReservations->sum(function ($r) {
+            // Updated logic: Calculate total only for NON-CANCELLED reservations
+            $totalDelegation = $delegationReservations->where('is_cancelled', false)->sum(function ($r) {
                 return $r->total_cost;
             });
         @endphp
@@ -276,11 +277,10 @@
                 </td>
                 @endif
 
-                @if ($index===0)
-                    <td rowspan="{{ $rowspan }}" class="align-middle text-center">
-                    <a href="#" class="btn btn-sm btn-outline-primary">Voir</a>
-                    </td>
-                @endif
+                {{-- ACTION (Per Row) --}}
+                <td class="align-middle text-center">
+                    <a href="{{ route('reservations.show', $reservation) }}" class="btn btn-sm btn-outline-primary">Voir</a>
+                </td>
             </tr>
         @endforeach
 

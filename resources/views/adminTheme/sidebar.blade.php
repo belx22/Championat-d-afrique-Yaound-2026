@@ -93,7 +93,7 @@
                 <a class="collapse-item" href="/reservations">Gestion Réservations</a>
             @endif
             @if($user->role === 'admin-federation')
-                <a class="collapse-item" href="/hotels">Hotels</a>
+                <a class="collapse-item" href="/federation/hotels">Hotels</a>
                 <a class="collapse-item" href="/reservations">Reservations</a>
             @endif
         </div>

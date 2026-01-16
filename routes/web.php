@@ -1,436 +1,218 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\HomeController;
-use App\Http\Controllers\UserController;
-use App\Http\Controllers\UserChampionatController;
-use App\Http\Controllers\DelegationsController;
-use App\Http\Controllers\ProvisionalRegistrationController;
-use App\Http\Controllers\AdminLocal\ProvisionalValidationController;
 use App\Http\Controllers\{
+    HomeController,
+    LoginController,
     SuperAdminDashboardController,
     AdminLocalDashboardController,
     AdminFederationDashboardController,
+    UserChampionatController,
+    DelegationsController,
+    ProvisionalRegistrationController,
     DefinitiveRegistrationController,
-    definitiveController,
     NominativeRegistrationController,
     AdminRegistrationController,
     AccreditationController,
     SecurePreviewController,
+    HotelController,
+    RoomController,
+    RoomReservationController,
+    PaymentController,
+    AccommodationDashboardController,
+    AccommodationExportController
 };
 
-use App\Http\Controllers\HotelController;
-use App\Http\Controllers\RoomController;
-use App\Http\Controllers\RoomReservationController;
-use App\Http\Controllers\PaymentController;
-use App\Http\Controllers\LoginController;
-
 /*
 |--------------------------------------------------------------------------
-| AUTHENTIFICATION
+| AUTHENTICATION & PUBLIC ROUTES
 |--------------------------------------------------------------------------
 */
 
-Route::get('/login', [LoginController::class, 'showLoginForm'])
-    ->name('login');
+Route::get('/', [LoginController::class, 'showLoginForm'])->name('login');
+Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
+Route::post('/login', [LoginController::class, 'login'])->name('login.submit');
+Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
 
-Route::get('/', [LoginController::class, 'showLoginForm'])
-    ->name('login');
-
-Route::post('/login', [LoginController::class, 'login'])
-    ->name('login.submit');
-
-Route::post('/logout', [LoginController::class, 'logout'])
-    ->name('logout');
-
-Route::middleware('auth:championat')->get('/home', function () {
-
-    $role = auth('championat')->user()->role;
-
-    return match ($role) {
-        'super-admin'      => redirect()->route('dashboard.super-admin'),
-        'admin-local'      => redirect()->route('dashboard.admin-local'),
-        'admin-federation' => redirect()->route('dashboard.admin-federation'),
-        default            => abort(403),
-    };
-})->name('home');
-
-
-Route::get(
-    '/secure-preview/{context}/{id}/{field}',
-    [SecurePreviewController::class, 'preview']
-)
-->name('secure.preview')
-->middleware('auth:championat');
-
-
-/////////////////////////////////////////////////////
-
-Route::middleware(['auth:championat'])->group(function () {
-
-  
-    Route::middleware(['role:super-admin'])->get('/dashboard/super-admin', [SuperAdminDashboardController::class, 'index']
-    )->name('dashboard.super_admin');
-    Route::middleware(['role:admin-local'])->get(
-        '/dashboard/admin_local',
-        [AdminLocalDashboardController::class, 'index']
-    )->name('dashboard.admin_local');
-
-    Route::middleware(['role:admin-federation'])->get(
-        '/dashboard/admin_federation',
-        [AdminFederationDashboardController::class, 'index']
-    )->name('dashboard.admin_federation');
-});
-
-////////////////////////////////////////////////////////////////////
-
-Route::get("home", [HomeController::class, "index"]);
-
-/////////////////////////////////////////////////////////////////////////
-
-
-
-Route::get("/inscription",function(){
+Route::get("/home", [HomeController::class, "index"]);
+Route::get("/inscription", function() {
     return view("inscription");
-
 })->name("inscription");
 
-
-// listes des liens pour la gestion des utilisateurs 
-
-
-Route::middleware(['auth:championat','role:super-admin,admin-local'])->group(function () {
-
-    Route::get('/role_inscription', [UserChampionatController::class, 'index'])
-        ->name('role_inscription');
-
-    Route::post('/role_inscription', [UserChampionatController::class, 'store'])
-        ->name('role_inscription.store');
-
-    Route::put('/role_inscription/{userChampionat}', [UserChampionatController::class, 'update'])
-        ->name('role_inscription.update');
-
-    Route::patch('/role_inscription/{userChampionat}/toggle-status', [UserChampionatController::class, 'toggleStatus'])
-        ->name('role_inscription.toggle-status');
-
-    Route::delete('/role_inscription/{userChampionat}', [UserChampionatController::class, 'destroy'])
-        ->name('role_inscription.destroy');
-});
-
-
-// listes des liens ver les delegations 
-
-Route::middleware(['auth:championat','role:super-admin,admin-local'])->group(function () {
-
-
-
-    Route::get('/delegations', [DelegationsController::class, 'index'])
-        ->name('delegations');
-
-    Route::post('/delegations', [DelegationsController::class, 'store'])
-        ->name('delegations.store');
-
-    Route::put('/delegations/{delegation}', [DelegationsController::class, 'update'])
-        ->name('delegations.update');
-
-    Route::delete('/delegations/{delegation}', [DelegationsController::class, 'destroy'])
-        ->name('delegations.destroy');
-
-});
-
-
-//liste des liens vers 
-
-Route::middleware(['auth:championat','role:admin-federation'])->group(function () {
-    Route::get('/provisional-registration', [ProvisionalRegistrationController::class, 'index'])
-        ->name('registrations.provisional_registration');
-
-    Route::post('/provisional-registration', [ProvisionalRegistrationController::class, 'store'])
-        ->name('registrations.provisional_registration.store');
-
-    Route::post('/provisional-registration/validate', [ProvisionalRegistrationController::class, 'validateStep'])
-        ->name('registrations.provisional_registration.validate');
-});
-
-
-///////
-
-
-
-//////
-Route::middleware([
-    'auth:championat',
-    //'provisional.validated',
-    'role:admin-federation'
-])->group(function () {
-
-    Route::get('/definitive-registration', [DefinitiveRegistrationController::class, 'index'])
-        ->name('definitive');
-
-
-    Route::post('/definitive-registration', [DefinitiveRegistrationController::class, 'validateStep'])
-        ->name('definitive.validateStep');
-
-
-        Route::post('/definitive-registration', [DefinitiveRegistrationController::class, 'store'])
-        ->name('definitive.store');
-
-});
-
-
-
-
-
-
-
-
-/////////////////////////
-
-
-Route::middleware(['auth:championat','role:admin-federation'])->group(function () {
-
-    Route::get('/nominative-registration',
-        [NominativeRegistrationController::class,'index'])
-        ->name('nominative.index');
-
-    Route::put('/nominative-registration/{member}',
-        [NominativeRegistrationController::class,'update'])
-        ->name('nominative.update');
-
-    Route::post('/delegation-info',
-        [NominativeRegistrationController::class,'storeDelegationInfo'])
-        ->name('delegation.info.store');
-
-
-
-    Route::post('/nominative-registration',
-        [NominativeRegistrationController::class,'store'])
-        ->name('nominative.store');
-
-
-    Route::delete('/nominative-registration/{member}',
-        [NominativeRegistrationController::class,'destroy'])
-        ->name('nominative.destroy');
-});
-
-/*
-
-
-Route::middleware(['auth:championat', 'role:super-admin'])->group(function () {
-
-    Route::get('/users', [UserChampionatController::class, 'index']);
-    Route::post('/users', [UserChampionatController::class, 'store']);
-});
-
-
-Route::middleware(['auth:championat', 'role:super-admin,admin-local'])->group(function () {
-
-    Route::get('/admin-local/dashboard', [AdminLocalDashboardController::class, 'index']);
-
-    Route::get('/admin-local/provisional-registrations',
-        [ProvisionalValidationController::class, 'index']
-    );
-});
-
-Route::middleware(['auth:championat', 'role:admin-federation'])->group(function () {
-
-    Route::get('/provisional-registration',
-        [ProvisionalRegistrationController::class, 'index']
-    );
-
-    Route::post('/provisional-registration',
-        [ProvisionalRegistrationController::class, 'store']
-    );
-});
-
-*/
-
-
-
-/*
-
-use App\Http\Controllers\HotelController;
-use App\Http\Controllers\RoomController;
-use App\Http\Controllers\RoomReservationController;
-use App\Http\Controllers\PaymentController;
-
 /*
 |--------------------------------------------------------------------------
-| HÉBERGEMENT – ADMIN
-|--------------------------------------------------------------------------
-
-Route::middleware(['auth:championat', 'role:super-admin,admin-local'])->group(function () {
-
-    // Page principale hébergement
-    Route::get('/accommodation', [HotelController::class, 'index'])
-        ->name('accommodation.index');
-
-    // Création hôtel
-    Route::post('/hotels', [HotelController::class, 'store'])
-        ->name('hotels.store');
-
-    // Ajout chambre à un hôtel
-    Route::post('/rooms', [RoomController::class, 'store'])
-        ->name('rooms.store');
-});
-
-/*
-|--------------------------------------------------------------------------
-| VALIDATION PAIEMENT – ADMIN LOCAL
-|--------------------------------------------------------------------------
-
-Route::middleware(['auth:championat', 'role:admin-local'])->group(function () {
-
-    Route::patch('/payments/{payment}/validate', [PaymentController::class, 'validatePayment'])
-        ->name('payments.validate');
-
-    Route::patch('/payments/{payment}/reject', [PaymentController::class, 'rejectPayment'])
-        ->name('payments.reject');
-});
-
-/*
-|--------------------------------------------------------------------------
-| RÉSERVATIONS – ADMIN FÉDÉRATION
-|--------------------------------------------------------------------------
-
-Route::middleware([
-    'auth:championat',
-    'role:admin-federation',
-    'nominative.validated'
-])->group(function () {
-
-    // Réserver des chambres
-    Route::post('/reservations', [RoomReservationController::class, 'store'])
-        ->name('reservations.store');
-
-    // Upload du reçu de paiement
-    Route::post('/reservations/{reservation}/payment', [PaymentController::class, 'store'])
-        ->name('payments.store');
-});
-
-
-*/
-
-
-
-Route::middleware(['auth:championat','role:super-admin,admin-local'])->group(function () {
-
-    Route::get('/admin/registrations', 
-        [AdminRegistrationController::class, 'index']
-    )->name('admin.registrations.index');
-
-    Route::get('/admin/registrations/{delegation}', 
-        [AdminRegistrationController::class, 'show']
-    )->name('admin.registrations.show');
-
-    Route::post('/admin/registrations/{delegation}/{type}/validate', 
-        [AdminRegistrationController::class, 'validateStep']
-    )->name('admin.registrations.validate');
-
-    Route::post('/admin/registrations/{delegation}/{type}/reject', 
-        [AdminRegistrationController::class, 'rejectStep']
-    )->name('admin.registrations.reject');
-
-    Route::get('/admin/registrations/{delegation}/download', 
-        [AdminRegistrationController::class, 'downloadDelegation']
-    )->name('admin.registrations.download');
-
-    Route::get('/admin/registrations/member/{member}/download', 
-        [AdminRegistrationController::class, 'downloadMember']
-    )->name('admin.registrations.member.download');
-});
-
-
-
-//////////////////////////
-
-
-Route::middleware(['auth:championat','role:super-admin,admin-local'])
-    ->prefix('admin/accreditations')
-    ->name('admin.accreditations.')
-    ->group(function () {
-
-        Route::get(
-                '/{delegation}/badges/pdf',
-                [AccreditationController::class, 'badgesPdf']
-            )->name('badges.pdf');
-
-        Route::get(
-                '/export/excel',
-                [AccreditationController::class, 'exportExcel']
-            )->name('export.excel');
-
-        Route::get('/delegations/{delegation}', [AccreditationController::class,'showByDelegation'])->name('showByDelegation');
-        Route::get('/', [AccreditationController::class,'index'])->name('index');
-        Route::get('/delegation/{delegation}', [AccreditationController::class,'show'])->name('show');
-
-        Route::post('/generate/{member}', [AccreditationController::class,'generate'])->name('generate');
-
-        Route::post('/validate/{accreditation}', [AccreditationController::class,'validateBadge'])->name('validate');
-        Route::post('/reject/{accreditation}', [AccreditationController::class,'rejectBadge'])->name('reject');
-
-        Route::get('/print/{accreditation}', [AccreditationController::class,'printSingle'])->name('print');
-        Route::get('/print/delegation/{delegation}', [AccreditationController::class,'printDelegation'])->name('print.delegation');
-});
-
-
-
-
-
-/*
-|--------------------------------------------------------------------------
-| ACCOMMODATION ROUTES - Role-based access
+| AUTHENTICATED ROUTES
 |--------------------------------------------------------------------------
 */
 
-Route::middleware(['auth:championat'])->group(function () {
-    
-    // Hotel management (Super Admin / Local Admin only)
+Route::middleware('auth:championat')->group(function () {
+
+    // General Home Redirection
+    Route::get('/home', function () {
+        $role = auth('championat')->user()->role;
+        return match ($role) {
+            'super-admin'      => redirect()->route('dashboard.super-admin'),
+            'admin-local'      => redirect()->route('dashboard.admin-local'),
+            'admin-federation' => redirect()->route('dashboard.admin-federation'),
+            default            => abort(403),
+        };
+    })->name('home');
+
+    // Secure Preview
+    Route::get('/secure-preview/{context}/{id}/{field}', [SecurePreviewController::class, 'preview'])
+        ->name('secure.preview');
+
+    /*
+    |--------------------------------------------------------------------------
+    | DASHBOARDS
+    |--------------------------------------------------------------------------
+    */
+    Route::middleware(['role:super-admin'])->get('/dashboard/super-admin', [SuperAdminDashboardController::class, 'index'])
+        ->name('dashboard.super_admin');
+
+    Route::middleware(['role:admin-local'])->get('/dashboard/admin_local', [AdminLocalDashboardController::class, 'index'])
+        ->name('dashboard.admin_local');
+
+    Route::middleware(['role:admin-federation'])->get('/dashboard/admin_federation', [AdminFederationDashboardController::class, 'index'])
+        ->name('dashboard.admin_federation');
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | SUPER ADMIN & ADMIN LOCAL SHARED ROUTES
+    |--------------------------------------------------------------------------
+    */
     Route::middleware(['role:super-admin,admin-local'])->group(function () {
-       
-        Route::get('/accommodation', [\App\Http\Controllers\AccommodationDashboardController::class, 'index'])
-            ->name('accommodation.dashboard');
-        Route::get('/hotels', [HotelController::class, 'index'])->name('accommodation.index');
-        Route::post('/hotels', [HotelController::class, 'store'])->name('hotels.store');
-        Route::put('/hotels/{hotel}', [HotelController::class, 'update'])->name('hotels.update');
-        Route::delete('/hotels/{hotel}', [HotelController::class, 'destroy'])->name('hotels.destroy');
-        Route::post('/rooms', [RoomController::class, 'store'])->name('rooms.store');
-        Route::put('/rooms/{room}', [RoomController::class, 'update'])->name('rooms.update');
-        Route::delete('/rooms/{room}', [RoomController::class, 'destroy'])->name('rooms.destroy');
 
-        // Payment validation (Super Admin / Local Admin)
-        Route::patch('/payments/{payment}/validate', [PaymentController::class, 'validatePayment'])
-            ->name('payments.validate');
-        Route::patch('/payments/{payment}/reject', [PaymentController::class, 'rejectPayment'])
-            ->name('payments.reject');
-        Route::post('/payments/bulk-validate', [PaymentController::class, 'validateBulk'])
-            ->name('payments.bulk-validate');
-        Route::post('/payments/bulk-reject', [PaymentController::class, 'rejectBulk'])
-            ->name('payments.bulk-reject');
-        
-        // Manual cancellation
-        Route::post('/reservations/{reservation}/cancel', [RoomReservationController::class, 'cancel'])
-            ->name('reservations.cancel');
-        
-        // Export reservations
-        Route::get('/accommodation/export/reservations', [\App\Http\Controllers\AccommodationExportController::class, 'exportReservations'])
-            ->name('accommodation.export.reservations');
+        // User Management (Role Inscription)
+        Route::controller(UserChampionatController::class)->prefix('role_inscription')->name('role_inscription')->group(function () {
+            Route::get('/', 'index'); // name: role_inscription
+            Route::post('/', 'store')->name('.store');
+            Route::put('/{userChampionat}', 'update')->name('.update');
+            Route::delete('/{userChampionat}', 'destroy')->name('.destroy');
+            Route::patch('/{userChampionat}/toggle-status', 'toggleStatus')->name('.toggle-status');
+        });
+
+        // Delegations Management
+        Route::controller(DelegationsController::class)->prefix('delegations')->name('delegations')->group(function () {
+            Route::get('/', 'index'); // name: delegations
+            Route::post('/', 'store')->name('.store');
+            Route::put('/{delegation}', 'update')->name('.update');
+            Route::delete('/{delegation}', 'destroy')->name('.destroy');
+        });
+
+        // Registrations Administration
+        Route::controller(AdminRegistrationController::class)->prefix('admin/registrations')->name('admin.registrations.')->group(function () {
+            Route::get('/', 'index')->name('index');
+            Route::get('/{delegation}', 'show')->name('show');
+            Route::post('/{delegation}/{type}/validate', 'validateStep')->name('validate');
+            Route::post('/{delegation}/{type}/reject', 'rejectStep')->name('reject');
+            Route::get('/{delegation}/download', 'downloadDelegation')->name('download');
+            Route::get('/member/{member}/download', 'downloadMember')->name('member.download');
+        });
+
+        // Accreditations
+        Route::controller(AccreditationController::class)->prefix('admin/accreditations')->name('admin.accreditations.')->group(function () {
+            Route::get('/', 'index')->name('index');
+            Route::get('/delegations/{delegation}', 'showByDelegation')->name('showByDelegation');
+            Route::get('/delegation/{delegation}', 'show')->name('show');
+            Route::get('/{delegation}/badges/pdf', 'badgesPdf')->name('badges.pdf');
+            Route::get('/export/excel', 'exportExcel')->name('export.excel');
+            Route::post('/generate/{member}', 'generate')->name('generate');
+            Route::post('/validate/{accreditation}', 'validateBadge')->name('validate');
+            Route::post('/reject/{accreditation}', 'rejectBadge')->name('reject');
+            Route::get('/print/{accreditation}', 'printSingle')->name('print');
+            Route::get('/print/delegation/{delegation}', 'printDelegation')->name('print.delegation');
+        });
+
+        // Accommodation Administration
+        Route::get('/accommodation', [AccommodationDashboardController::class, 'index'])->name('accommodation.dashboard');
+
+        Route::controller(HotelController::class)->prefix('hotels')->name('hotels.')->group(function () {
+            Route::get('/', 'index')->name('index');
+            Route::post('/', 'store')->name('store');
+            Route::put('/{hotel}', 'update')->name('update');
+            Route::delete('/{hotel}', 'destroy')->name('destroy');
+        });
+
+        Route::controller(RoomController::class)->prefix('rooms')->name('rooms.')->group(function () {
+            Route::post('/', 'store')->name('store');
+            Route::put('/{room}', 'update')->name('update');
+            Route::delete('/{room}', 'destroy')->name('destroy');
+        });
+
+        // Payments Administration
+        Route::controller(PaymentController::class)->prefix('payments')->name('payments.')->group(function () {
+            Route::patch('/{payment}/validate', 'validatePayment')->name('validate');
+            Route::patch('/{payment}/reject', 'rejectPayment')->name('reject');
+            Route::post('/bulk-validate', 'validateBulk')->name('bulk-validate');
+            Route::post('/bulk-reject', 'rejectBulk')->name('bulk-reject');
+        });
+
+        // Reservation Management (Admin Side)
+        Route::post('/reservations/{reservation}/cancel', [RoomReservationController::class, 'cancel'])->name('reservations.cancel');
+        Route::get('/accommodation/export/reservations', [AccommodationExportController::class, 'exportReservations'])->name('accommodation.export.reservations');
     });
-    
-    // Reservations - All roles can access (role-based views in controller)
-    Route::get('/reservations', [RoomReservationController::class, 'index'])
-        ->name('reservations.index');
-    Route::get('/reservations/{reservation}', [RoomReservationController::class, 'show'])
-        ->name('reservations.show');
-    
-    // Hotel details & reservation creation (Federation Admin only)
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | ADMIN FEDERATION ROUTES
+    |--------------------------------------------------------------------------
+    */
     Route::middleware(['role:admin-federation'])->group(function () {
-        Route::get('/hotels', [HotelController::class, 'index'])->name('accommodation.index');
+
+        // Provisional Registration
+        Route::controller(ProvisionalRegistrationController::class)->prefix('provisional-registration')->name('registrations.provisional_registration')->group(function () {
+            Route::get('/', 'index'); 
+            Route::post('/', 'store')->name('.store');
+            Route::post('/validate', 'validateStep')->name('.validate');
+        });
+
+        // Definitive Registration
+        Route::controller(DefinitiveRegistrationController::class)->prefix('definitive-registration')->group(function () {
+            Route::get('/', 'index')->name('definitive');
+            Route::post('/', 'store')->name('definitive.store');
+            Route::post('/validate', 'validateStep')->name('definitive.validateStep');
+        });
+
+        // Nominative Registration
+        Route::controller(NominativeRegistrationController::class)->group(function () {
+            Route::prefix('nominative-registration')->name('nominative.')->group(function () {
+                Route::get('/', 'index')->name('index');
+                Route::post('/', 'store')->name('store');
+                Route::put('/{member}', 'update')->name('update');
+                Route::delete('/{member}', 'destroy')->name('destroy');
+            });
+            Route::post('/delegation-info', 'storeDelegationInfo')->name('delegation.info.store');
+        });
+
+        // Accommodation (Federation View)
+        // Explicitly uniquely named to avoid conflicts with shared 'accommodation.index' if necessary, 
+        // though middleware separation allows same URI. Route names must be unique.
+        Route::get('/federation/hotels', [HotelController::class, 'index'])->name('accommodation.federation.index'); 
+        
         Route::get('/accommodation/hotel/{hotel}', [HotelController::class, 'show'])
             ->name('accommodation.federation.hotel.show');
+            
         Route::post('/reservations', [RoomReservationController::class, 'store'])
             ->name('reservations.store');
+            
         Route::post('/reservations/{reservation}/payment', [PaymentController::class, 'store'])
             ->name('payments.store');
     });
+
+    /*
+    |--------------------------------------------------------------------------
+    | SHARED ACCOMMODATION ROUTES
+    |--------------------------------------------------------------------------
+    */
+    // Accessible by all authenticated users (permission handled by controller)
+    Route::get('/hotels-list', [HotelController::class, 'index'])->name('accommodation.index');
+
+    Route::controller(RoomReservationController::class)->prefix('reservations')->name('reservations.')->group(function () {
+        Route::get('/', 'index')->name('index');
+        Route::get('/{reservation}', 'show')->name('show');
+    });
+
 });
